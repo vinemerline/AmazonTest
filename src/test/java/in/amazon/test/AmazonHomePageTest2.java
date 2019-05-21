@@ -1,0 +1,68 @@
+package in.amazon.test;
+
+import org.testng.Assert;
+import org.testng.ITestResult;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.Test;
+
+import com.aventstack.extentreports.Status;
+
+//screenshot and config
+
+public class AmazonHomePageTest2 extends BaseTest {
+
+	@Test(priority = 100)
+	public void VerifyTitleOfThePage() throws Exception {
+		String expectedTitle = "Amazon Home Page";
+		String actualTitle = cmnDriver.getTitle();
+		Assert.assertEquals(actualTitle, expectedTitle);
+	}
+
+	@Test(priority = 10000)
+	public void searchProduct() throws Exception {
+		extentTest = extentReport.createTest("TestCase-01: Search Product on Amazon");
+		String product = "Apple watch";
+		String category = "Electronics";
+		extentTest.log(Status.INFO, "Product: " + product);
+		homepage.searchProduct(product, category);
+		String result = homepage.getResult();
+		extentTest.log(Status.INFO, "Result of the search : " + result);
+
+	}
+
+	@AfterMethod
+	public void afterMethod(ITestResult result) throws Exception {
+
+		String methodName = result.getName();
+		if (result.getStatus() == ITestResult.FAILURE) {
+			screenshotfilename = String.format("%s/screenshots/%s_%s.jpeg", CurrentworkingDirectory, methodName,
+					executionStartTime);
+			camera.captureAndSaveScreenshot(screenshotfilename);
+
+			extentTest.log(Status.FAIL, "Test Step failed in method -  " + methodName);
+			extentTest.addScreenCaptureFromPath(screenshotfilename);
+
+		} else if (result.getStatus() == ITestResult.SUCCESS) {
+			extentTest.log(Status.PASS, "All steps passed in method" + methodName);
+		} else {
+			extentTest.log(Status.SKIP, "All steps skipped in method" + methodName);
+		}
+
+	}
+
+	@AfterClass
+	public void closeBrowser() throws Exception {
+		extentTest = extentReport.createTest("clean up: closing the browser");
+		cmnDriver.closeAllBrowsers();
+	}
+
+	@AfterSuite
+
+	public void postCleanup() {
+
+		extentReport.flush();
+	}
+
+}
